@@ -1,1 +1,44 @@
+name: Web Application Security Scan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install OWASP ZAP
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zaproxy
+
+    - name: Start ZAP in daemon mode
+      run: |
+        zap.sh -daemon &
+
+    - name: Run security scan
+      run: |
+        python scan.py --url https://targetwebsite.com
+
+    - name: Upload the security report
+      uses: actions/upload-artifact@v2
+      with:
+        name: zap-report
+        path: results/report.html
 
